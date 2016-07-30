@@ -1,3 +1,5 @@
+//THIS IS A WORK IN PROGRESS, IT CURRENTLY DOES NOT WORK
+
 /**
  *  Change Color With Time
  *
@@ -43,12 +45,12 @@ page(name: "timeIntervalInput", title: "Only during a certain time") {
 					["Daylight":"Daylight"],
 					["Warm White":"Warm White"],
 					["Red":"Red"],
-                	["Green":"Green"],
-                	["Blue":"Blue"],
-                	["Yellow":"Yellow"],
-                	["Orange":"Orange"],
-                	["Purple":"Purple"],
-                	["Pink":"Pink"]
+                			["Green":"Green"],
+                			["Blue":"Blue"],
+                			["Yellow":"Yellow"],
+                			["Orange":"Orange"],
+                			["Purple":"Purple"],
+                			["Pink":"Pink"]
                 ]
                 
 	}
@@ -66,7 +68,9 @@ section("Choose cycle time between color changes? ") {
 
 section("Schedule", ) {
 			input "starting", "time", title: "Starting", required: false
+			//TO DO: Add in sunrise/set with offset 
 			input "ending", "time", title: "Ending", required: false
+			//TO DO: Add in sunrise/set with offset 
 	}
     
 }
@@ -137,7 +141,7 @@ private takeAction(evt) {
 
 	def hueColor = 0
 	def saturation = 100
-
+	//TO DO: Figure out how to loop the array and set it back the first once it has cycled through all the selected colors
 	switch(color) {
 		case "White":
 			hueColor = 52
@@ -196,3 +200,5 @@ private takeAction(evt) {
 
 	hues*.setColor(newValue)
 }
+
+//TO DO: Add in if no color select, randomly select a color and change it based on the time interval selected.
