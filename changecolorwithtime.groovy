@@ -1,4 +1,7 @@
-//THIS IS A WORK IN PROGRESS, IT CURRENTLY DOES NOT WORK
+//THIS IS A WORK IN PROGRESS AND CURRENTLY DOES NOT WORK
+
+//Parts Working: Menu 
+//Setting Light color a set time
 
 /**
  *  Change Color With Time
@@ -45,12 +48,12 @@ page(name: "timeIntervalInput", title: "Only during a certain time") {
 					["Daylight":"Daylight"],
 					["Warm White":"Warm White"],
 					["Red":"Red"],
-                			["Green":"Green"],
-                			["Blue":"Blue"],
-                			["Yellow":"Yellow"],
-                			["Orange":"Orange"],
-                			["Purple":"Purple"],
-                			["Pink":"Pink"]
+                	["Green":"Green"],
+                	["Blue":"Blue"],
+                	["Yellow":"Yellow"],
+                	["Orange":"Orange"],
+                	["Purple":"Purple"],
+                	["Pink":"Pink"]
                 ]
                 
 	}
@@ -68,9 +71,7 @@ section("Choose cycle time between color changes? ") {
 
 section("Schedule", ) {
 			input "starting", "time", title: "Starting", required: false
-			//TO DO: Add in sunrise/set with offset 
 			input "ending", "time", title: "Ending", required: false
-			//TO DO: Add in sunrise/set with offset 
 	}
     
 }
@@ -89,7 +90,13 @@ def updated() {
 }
 
 def initialize() {
-	subscribeToEvents()
+    log.debug(" in initialize() for $app.label with settings: ${settings}")
+    subscribe(hues, "switch.on", changeHandler) 
+
+    
+	schedule(starting, scheduledTimeHandler)
+    schedule(ending, scheduledTimeHandler)
+
 	
     switch (settings.cycletime)
     {
@@ -124,24 +131,35 @@ def initialize() {
      break;
      
     }
-
 }
 
 // TODO: implement event handlers
 
 def subscribeToEvents() {
+
+schedule(starting, scheduledTimeHandler)
+schedule(ending, scheduledTimeHandler)
+
 }
 
 def scheduledTimeHandler() {
 	log.trace "scheduledTimeHandler()"
-	eventHandler()
+    log.debug "handler called at ${new Date()}"
+    
+    def sunRiseSet = getSunriseAndSunset()
+    def sunriseTime = sunRiseSet.sunrise
+    def sunsetTime = sunRiseSet.sunset
+        
+    log.debug "sunrise time ${sunriseTime}"
+    log.debug "sunset time ${sunsetTime}"
+    
 }
 
-private takeAction(evt) {
+def takeAction(evt) {
 
 	def hueColor = 0
 	def saturation = 100
-	//TO DO: Figure out how to loop the array and set it back the first once it has cycled through all the selected colors
+
 	switch(color) {
 		case "White":
 			hueColor = 52
@@ -201,4 +219,210 @@ private takeAction(evt) {
 	hues*.setColor(newValue)
 }
 
-//TO DO: Add in if no color select, randomly select a color and change it based on the time interval selected.
+def changeHandler(evt) {
+
+	log.debug "in change handler"
+  	// only do stuff if either switch is on (turns off at sunrise) or turned on manually
+    if (hues)
+    {
+    	 def currSwitches = hues.currentSwitch
+         def onHues = currSwitches.findAll { switchVal -> switchVal == "on" ? true : false }
+         def numberon = onHues.size();
+         def onstr = numberon.toString() 
+         
+       log.debug "found $onstr that were on!"
+    
+    if (onHues.size() > 0)
+    {
+      def newColor = ""
+      if (settings.randomMode == true)
+       {
+        def int nextValue = new Random().nextInt(16)
+        def colorArray = ["Red","Brick Red","Safety Orange","Orange","Amber","Yellow","Green","Turquoise","Aqua","Navy Blue","Blue","Indigo","Purple","Pink","Rasberry","White"]
+             
+        log.debug "Random Number = $nextValue"
+        newColor = colorArray[nextValue]    
+       }
+       
+      else
+      
+      { // not random
+      
+	  def currentColor = state.currentColor
+      
+    log.debug " in changeHandler got current color = $currentColor"
+
+       switch(currentColor) {
+    
+		case "Red":
+			newColor="Brick Red"
+			break;
+		case "Brick Red":
+			newColor = "Safety Orange"
+			break;
+		case "Safety Orange":
+			newColor = "Orange"
+			break;
+		case "Orange":
+			newColor = "Amber"
+			break;
+		case "Amber":
+			newColor = "Yellow"
+			break;
+		case "Yellow":
+			newColor = "Green"
+			break;
+		case "Green":
+			newColor = "Turquoise"
+			break;
+        case "Turquoise":
+			newColor = "Aqua"
+			break;
+		case "Aqua":
+			newColor = "Navy Blue"
+			break;
+        case "Navy Blue":
+			newColor = "Blue"
+			break;
+		case "Blue":
+			newColor = "Indigo"
+			break;
+		case "Indigo":
+			newColor = "Purple"
+			break;
+        case "Purple":
+			newColor = "Pink"
+			break;
+    	case "Pink":
+			newColor = "Rasberry"
+			break;
+        case "Rasberry":
+			newColor = "White"
+			break;
+        case "White":
+			newColor = "Red"
+			break;
+        default:
+        	//log.debug "in default"
+             newColor = "Red"
+			break;
+	}
+    } // end random or not
+    
+      log.debug "After Check new color = $newColor"
+
+      hues.on()
+      sendcolor(newColor)
+      }
+   }
+}
+
+
+def sendcolor(color)
+{
+log.debug "In send color"
+	//Initialize the hue and saturation
+	def hueColor = 0
+	def saturation = 100
+
+	//Use the user specified brightness level. If they exceeded the min or max values, overwrite the brightness with the actual min/max
+	if (brightnessLevel<1) {
+		brightnessLevel=1
+	}
+    else if (brightnessLevel>100) {
+		brightnessLevel=100
+	}
+
+	//Set the hue and saturation for the specified color.
+	switch(color) {
+		case "White":
+			hueColor = 0
+			saturation = 0
+			break;
+		case "Daylight":
+			hueColor = 53
+			saturation = 91
+			break;
+		case "Soft White":
+			hueColor = 23
+			saturation = 56
+			break;
+		case "Warm White":
+			hueColor = 20
+			saturation = 80 
+			break;
+        case "Navy Blue":
+            hueColor = 61
+            break;
+		case "Blue":
+			hueColor = 65
+			break;
+		case "Green":
+			hueColor = 33
+			break;
+        case "Turquoise":
+        	hueColor = 47
+            break;
+        case "Aqua":
+            hueColor = 50
+            break;
+        case "Amber":
+            hueColor = 13
+            break;
+		case "Yellow":
+			//hueColor = 25
+            hueColor = 17
+			break; 
+        case "Safety Orange":
+            hueColor = 7
+            break;
+		case "Orange":
+			hueColor = 10
+			break;
+        case "Indigo":
+            hueColor = 73
+            break;
+		case "Purple":
+			hueColor = 82
+			saturation = 100
+			break;
+		case "Pink":
+			hueColor = 90.78
+			saturation = 67.84
+			break;
+        case "Rasberry":
+            hueColor = 94
+            break;
+		case "Red":
+			hueColor = 0
+			break;
+         case "Brick Red":
+            hueColor = 4
+            break;                
+	}
+
+	//Change the color of the light
+	def newValue = [hue: hueColor, saturation: saturation, level: brightnessLevel]  
+	hues*.setColor(newValue)
+        state.currentColor = color
+        mysend("$app.label: Setting Color = $color")
+        log.debug "$app.label: Setting Color = $color"
+
+}
+ 
+ def TurnOff()
+{
+
+      mysend("$app.label: Turning Off!")
+	
+	hues.off()
+}    
+
+def TurnOn()
+{
+   // log.debug "In turn on"
+
+     mysend("$app.label: Turning On!")
+     hues.on()
+    
+}
