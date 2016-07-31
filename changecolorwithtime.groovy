@@ -33,7 +33,9 @@ preferences {
 page(name: "timeIntervalInput", title: "Only during a certain time") {
 		section {
 			input "starting", "time", title: "Starting", required: false
+            //TODO: have an option to set with Sunset/Rise with offset
 			input "ending", "time", title: "Ending", required: false
+            //TODO: have an option to set with Sunset/Rise with offset
 		}
 }
 	section("Choose lights you wish to control?") {
@@ -55,7 +57,8 @@ page(name: "timeIntervalInput", title: "Only during a certain time") {
                 	["Purple":"Purple"],
                 	["Pink":"Pink"]
                 ]
-                
+                //TO DO: have this set if no values are selected
+            input "randomMode","bool", title: "Enable Random Mode?", required: true, defaultValue: false
 	}
     
 section("Choose cycle time between color changes? ") {
@@ -68,6 +71,7 @@ section("Choose cycle time between color changes? ") {
 				"3 hours"
 			], required: true, defaultValue: "10"
 	}
+    
 
 section("Schedule", ) {
 			input "starting", "time", title: "Starting", required: false
@@ -222,7 +226,7 @@ def takeAction(evt) {
 def changeHandler(evt) {
 
 	log.debug "in change handler"
-  	// only do stuff if either switch is on (turns off at sunrise) or turned on manually
+  	
     if (hues)
     {
     	 def currSwitches = hues.currentSwitch
@@ -251,62 +255,8 @@ def changeHandler(evt) {
 	  def currentColor = state.currentColor
       
     log.debug " in changeHandler got current color = $currentColor"
-
-       switch(currentColor) {
-    
-		case "Red":
-			newColor="Brick Red"
-			break;
-		case "Brick Red":
-			newColor = "Safety Orange"
-			break;
-		case "Safety Orange":
-			newColor = "Orange"
-			break;
-		case "Orange":
-			newColor = "Amber"
-			break;
-		case "Amber":
-			newColor = "Yellow"
-			break;
-		case "Yellow":
-			newColor = "Green"
-			break;
-		case "Green":
-			newColor = "Turquoise"
-			break;
-        case "Turquoise":
-			newColor = "Aqua"
-			break;
-		case "Aqua":
-			newColor = "Navy Blue"
-			break;
-        case "Navy Blue":
-			newColor = "Blue"
-			break;
-		case "Blue":
-			newColor = "Indigo"
-			break;
-		case "Indigo":
-			newColor = "Purple"
-			break;
-        case "Purple":
-			newColor = "Pink"
-			break;
-    	case "Pink":
-			newColor = "Rasberry"
-			break;
-        case "Rasberry":
-			newColor = "White"
-			break;
-        case "White":
-			newColor = "Red"
-			break;
-        default:
-        	//log.debug "in default"
-             newColor = "Red"
-			break;
-	}
+		//set color user set values
+        //Loop through array to do it
     } // end random or not
     
       log.debug "After Check new color = $newColor"
